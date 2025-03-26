@@ -1,27 +1,30 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
 export default function Layout() {
-  const router = useRouter();
+  // const { userId: userIdLocalParam } = useLocalSearchParams<{
+  //   userId: string;
+  // }>();
+  // const router = useRouter();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [onboarded, setOnboarded] = useState(false);
+  // const [isLoading, setIsLoading] = useState(true);
+  // const [onboarded, setOnboarded] = useState(false);
 
-  useEffect(() => {
-    async function checkOnboardingStatus() {
-      const status = await AsyncStorage.getItem("onboarded");
-      if (!status) {
-        router.replace("/record/onboarding"); // Redirect to the first onboarding screen
-      } else {
-        setOnboarded(true);
-      }
-      setIsLoading(false);
-    }
-    checkOnboardingStatus();
-  }, []);
+  // useEffect(() => {
+  //   async function checkOnboardingStatus() {
+  //     const status = await AsyncStorage.getItem("onboarded");
+  //     if (!status) {
+  //       router.replace(`/record/${userIdLocalParam}/onboarding`); // Redirect to the first onboarding screen
+  //     } else {
+  //       setOnboarded(true);
+  //     }
+  //     setIsLoading(false);
+  //   }
+  //   checkOnboardingStatus();
+  // }, []);
 
-  if (isLoading) return null;
+  // if (isLoading) return null;
   return (
     <Stack>
       <Stack.Screen

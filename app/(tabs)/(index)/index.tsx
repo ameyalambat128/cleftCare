@@ -143,7 +143,9 @@ export default function Screen() {
   }, []);
 
   const handleDevPress = () => {
-    router.push("/add-record/add-signature");
+    // @ts-expect-error - Testing only
+    router.push({ pathname: "/_sitemap" });
+    // router.push({ pathname: "/record/d5ec1673-ac95-4087-8170-ce1ef7dcd53a/" });
   };
 
   const handleSearchPress = () => {

@@ -24,6 +24,7 @@ import Page from "@/components/Page";
 import Colors from "@/constants/Colors";
 import { getRecordByUserId, updateRecord } from "@/lib/api";
 import PrimaryButton from "@/components/PrimaryButton";
+import { getRecordingProgress } from "@/lib/recordingProgress";
 
 export default function Screen() {
   const router = useRouter();
@@ -99,6 +100,44 @@ export default function Screen() {
       Alert.alert("Error", error.error || "Failed to update user record.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEditRecordings = async () => {
+    if (!userId) {
+      Alert.alert("Error", "User ID is required to access recordings");
+      return;
+    }
+
+    try {
+      const progress = await getRecordingProgress(userId);
+
+      console.log("Recording progress:", progress);
+      // Check if prompt 1 is completed
+      if (progress[1]?.completed && progress[25]?.completed) {
+        // If prompt 1 is done, go to prompt 25
+        Alert.alert(
+          "Recordings Complete",
+          "All voice recordings have been completed for this patient. You can re-record if needed.",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => router.back() },
+            {
+              text: "Re-Record",
+            },
+          ]
+        );
+        router.push(`/record/${userId}/`);
+      } else if (progress[1]?.completed) {
+        // Otherwise start at prompt 1
+        router.push(`/record/${userId}/twentyfive`);
+      } else {
+        // If prompt 1 is not done, go to prompt 1
+        router.push(`/record/${userId}/`);
+      }
+    } catch (error) {
+      console.error("Error checking recording progress:", error);
+      // If there's an error, default to the first prompt
+      router.push(`/record/${userId}/`);
     }
   };
 
@@ -573,6 +612,13 @@ export default function Screen() {
             </Text>
           </TouchableOpacity>
 
+          <PrimaryButton
+            style={{ marginTop: 20 }}
+            type="large"
+            onPress={handleEditRecordings}
+          >
+            {t("editRecordScreen.editRecordingsButton")}
+          </PrimaryButton>
           {/* Submit Button */}
           <PrimaryButton
             style={{ marginTop: 20 }}

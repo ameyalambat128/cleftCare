@@ -1,5 +1,5 @@
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -10,6 +10,7 @@ import Colors from "@/constants/Colors";
 const promptNumber: number = 1;
 
 export default function Screen() {
+  const { userId } = useLocalSearchParams<{ userId: string }>();
   const router = useRouter();
 
   const [isOnboarding, setIsOnboarding] = useState(true);
@@ -69,7 +70,7 @@ export default function Screen() {
       setCurrentStep(currentStep + 1);
     } else {
       await AsyncStorage.setItem("onboarded", "true");
-      router.replace("/(tabs)/record/");
+      router.replace(`/record/${userId}/`);
     }
   };
 

@@ -58,7 +58,7 @@ export default function Screen() {
       const workerId = await AsyncStorage.getItem("user-id");
       if (workerId !== null) {
         setUser({
-          userId: randomUUID(),
+          userId: "",
           name,
           birthDate,
           gender,

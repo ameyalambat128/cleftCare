@@ -58,7 +58,15 @@
   },
   "recordingScreen": {
     "prompt1": "ಕಾಗೆ ಕಾಲು ಕಪ್ಪು",
-    "prompt2": "ಅಪ್ಪಾ ಪಟಾತಾ",
+    "prompt2": "ಗೀತ ಬೇಗ ಹೋಗು",
+    "prompt3": "ತನ ದಾರಿ ತಟ್ಟಿತು",
+    "prompt4": "ಅಬ್ಬ ಪಟ ತಾ",
+    "prompt5": "ಬಾಲು ತಬಲ ಬಾರಿಸು",
+    "prompt6": "ಬೇಡ ಕಾಡಿಗೆ ಒಡಿದ",
+    "prompt7": "ಸರಿತ ಕತ್ತರಿತು",
+    "prompt8": "ಇದು ಹೊಸ ಬಟ್ಟೆ",
+    "prompt9": "ಕಾಗೆ ಕಾಲು ಕಪ್ಪು",
+    "prompt25": "ಗೀತ ಬೇಗ ಹೋಗು",
     "startRecording": "ಆಡಿಯೊ ಐಕಾನ್ ಒತ್ತಿ ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಲು",
     "recordingStarted": "ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭವಾಗಿದೆ...",
     "uploading": "ಆಡಿಯೊ ಅಪ್ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
@@ -86,6 +94,7 @@
     "addressPlaceholder": "ನಿಮ್ಮ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ",
     "contactNumberPlaceholder": "ಸಂಪರ್ಕ ಸಂಖ್ಯೆ",
     "takePhotoButton": "ಫೋಟೋ ತೆರೆಯಿಕೆ/ಆಯ್ಕೆ ಮಾಡಿ (ಐಚ್ಛಿಕ)",
+    "editRecordingsButton": "ರೆಕಾರ್ಡಿಂಗ್‌ಗಳನ್ನು ಸಂಪಾದಿಸಿ",
     "updateButton": "ನವೀಕರಿಸಿ"
   }
 }

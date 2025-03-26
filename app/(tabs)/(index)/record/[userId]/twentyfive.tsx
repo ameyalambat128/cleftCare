@@ -1,8 +1,8 @@
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as FileSystem from "expo-file-system";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { Buffer } from "buffer";
@@ -13,9 +13,16 @@ import Colors from "@/constants/Colors";
 import { useCommunityWorkerStore, useUserStore } from "@/lib/store";
 import { formatDuration } from "@/lib/utils";
 import { s3Client } from "@/lib/aws";
-import { createAudioFile, predictOhmRating } from "@/lib/api";
+import PrimaryButton from "@/components/PrimaryButton";
+import {
+  createAudioFile,
+  getRecordByUserId,
+  predictOhmRating,
+  updateAverageOhmScore,
+} from "@/lib/api";
+import { saveRecordingProgress } from "@/lib/recordingProgress";
 
-const promptNumber: number = 1;
+const promptNumber: number = 25;
 
 export const InitialScreenState: React.FC<{
   onStartRecording: () => void;
@@ -23,7 +30,7 @@ export const InitialScreenState: React.FC<{
   const { t } = useTranslation();
   return (
     <View style={styles.bodyContainer}>
-      <Text style={styles.bodyText}>{t("recordingScreen.prompt1")}</Text>
+      <Text style={styles.bodyText}>{t("recordingScreen.prompt25")}</Text>
       <TouchableOpacity onPress={onStartRecording} style={styles.recordButton}>
         <Feather name="mic" size={40} color="black" />
       </TouchableOpacity>
@@ -42,7 +49,7 @@ export const RecordingState: React.FC<{
   return (
     <View style={styles.bodyContainer}>
       <Text style={[styles.bodyText, { color: Colors.tint }]}>
-        {t("recordingScreen.prompt1")}
+        {t("recordingScreen.prompt25")}
       </Text>
       <TouchableOpacity
         onPress={onStopRecording}
@@ -63,7 +70,7 @@ export const UploadingState: React.FC<{ timer: string }> = ({ timer }) => {
   const { t } = useTranslation();
   return (
     <View style={styles.bodyContainer}>
-      <Text style={styles.bodyText}>{t("recordingScreen.prompt1")}</Text>
+      <Text style={styles.bodyText}>{t("recordingScreen.prompt25")}</Text>
       <TouchableOpacity
         onPress={() => console.log("Uploading...")}
         style={[styles.recordButton]}
@@ -89,7 +96,7 @@ export const DoneState: React.FC<{
 
   return (
     <View style={styles.bodyContainer}>
-      <Text style={styles.bodyText}>{t("recordingScreen.prompt1")}</Text>
+      <Text style={styles.bodyText}>{t("recordingScreen.prompt25")}</Text>
       <TouchableOpacity
         onPress={onStartRecording}
         style={[styles.recordButton]}
@@ -128,22 +135,16 @@ export const DoneState: React.FC<{
 };
 
 export default function Screen() {
+  const { userId: userIdLocalParam } = useLocalSearchParams<{
+    userId: string;
+  }>();
   const router = useRouter();
   const { i18n, t } = useTranslation();
 
   const { getUser } = useUserStore();
   const { getCommunityWorker } = useCommunityWorkerStore();
 
-  const user = getUser();
   const communityWorker = getCommunityWorker();
-  console.log("User data:", user);
-  if (user) {
-    Object.entries(user).forEach(([key, value]) => {
-      console.log(`${key}:`, value);
-    });
-  } else {
-    console.log("No user data available");
-  }
 
   const recordingRef = useRef<Audio.Recording | null>(null);
   const [screenState, setScreenState] = useState<
@@ -155,38 +156,60 @@ export default function Screen() {
   const [latestUploadFileName, setLatestUploadFileName] = useState<string>("");
   const [status, setStatus] = useState<Audio.RecordingStatus | null>(null);
   const [meter, setMeter] = useState(0);
+  const [showModal, setShowModal] = useState<boolean>(false);
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    setShowModal(true);
+    if (userIdLocalParam) {
+      await saveRecordingProgress(
+        userIdLocalParam,
+        promptNumber,
+        recordingCount,
+        true
+      );
+    }
+  };
+
+  const handleModalClose = () => {
     handleResults();
-    router.push("/record/twentyfive");
+    handleUpdateAverageOhmScore();
+    setShowModal(false);
+    router.push("/"); // Navigate to home after closing
   };
 
   const handleResults = async () => {
+    const user = await getRecordByUserId(userIdLocalParam);
     console.log("CHECKTHIS:", latestUploadFileName);
     const ohmScore = await predictOhmRating(
-      user?.userId!,
+      user?.id!,
       user?.name!,
       communityWorker?.name!,
       promptNumber,
       i18n.language,
       latestUploadFileName,
-      false
+      true
     );
     const fileUrl = `https://cleftcare-test.s3.amazonaws.com/${latestUploadFileName}`;
+
     // TODO: Fix the duration
-    const durationInSeconds = status?.durationMillis
-      ? Math.round(status.durationMillis / 1000)
-      : undefined;
+    const durationInSeconds = status?.durationMillis;
+    console.log("Duration in seconds:", durationInSeconds);
+
     const ohmScoreNumber = ohmScore?.perceptualRating;
 
+    // Create an audio file record in the database
     createAudioFile(
-      user?.userId!,
-      t("recordingScreen.prompt1"),
+      user?.id!,
+      t("recordingScreen.prompt25"),
       promptNumber,
       fileUrl,
       durationInSeconds,
       ohmScoreNumber
     );
+  };
+
+  const handleUpdateAverageOhmScore = async () => {
+    const averageScore = await updateAverageOhmScore(userIdLocalParam);
   };
 
   const onStartRecording = async () => {
@@ -237,10 +260,6 @@ export default function Screen() {
     setTimeout(() => setScreenState("done"), 2000);
   };
 
-  /**
-   * onDone function is called after the recording is stopped and unloaded.
-   * It saves the recording to local storage and uploads it to S3.
-   */
   const onDone = async () => {
     setCompleted(true);
     setRecordingCount((prevCount) => prevCount + 1);
@@ -251,9 +270,9 @@ export default function Screen() {
     try {
       const uri = currentRecording.getURI();
       console.log("Recording URI:", uri);
-      const fileName = `${
-        user?.userId
-      }-${new Date().getTime()}-${promptNumber}-${recordingCount + 1}.m4a`;
+      const fileName = `${userIdLocalParam}-${new Date().getTime()}-${promptNumber}-${
+        recordingCount + 1
+      }.m4a`;
       const localFileUri = `${FileSystem.cacheDirectory}/${fileName}`; // Path to store the recording locally
 
       // Copy the recording to local storage
@@ -368,6 +387,34 @@ export default function Screen() {
             {t("recordingScreen.recordings")}: {recordingCount}
           </Text>
         </View>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showModal}
+          onRequestClose={() => setShowModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalContainer}
+            activeOpacity={1}
+            onPress={() => setShowModal(false)}
+          >
+            <View style={styles.modalContent}>
+              <AntDesign name="checkcircle" size={50} color={Colors.tint} />
+              <Text style={styles.modalTitle}>{t("audioSaveModal.title")}</Text>
+              <Text style={styles.modalSubtitle}>
+                {t("audioSaveModal.subtitle")}
+              </Text>
+              <PrimaryButton
+                style={{ marginTop: 20 }}
+                type="medium"
+                onPress={handleModalClose}
+              >
+                {t("audioSaveModal.buttonText")}
+              </PrimaryButton>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </Page>
   );
@@ -460,5 +507,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     color: "white",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent background
+  },
+  modalContent: {
+    width: "90%",
+    height: "45%", // Increase height to make it longer
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 40, // Add more padding for spacing
+    alignItems: "center",
+    justifyContent: "center", // Center content vertically
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginVertical: 10,
+    textAlign: "center",
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: Colors.secondaryText,
+    textAlign: "center",
+    marginBottom: 20,
   },
 });

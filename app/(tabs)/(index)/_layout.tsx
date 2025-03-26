@@ -86,6 +86,17 @@ export default function Layout() {
           ),
         }}
       />
+      <Stack.Screen
+        name="record"
+        options={{
+          headerShown: false,
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="chevron-back-outline" size={30} color="black" />
+            </TouchableOpacity>
+          ),
+        }}
+      />
     </Stack>
   );
 }

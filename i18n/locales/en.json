@@ -57,8 +57,16 @@
     "addSignatureButton": "Add Signature"
   },
   "recordingScreen": {
-    "prompt1": "Crow's leg is black",
-    "prompt2": "Father Patata",
+    "prompt1": "Puppy will pull a rope",
+    "prompt2": "",
+    "prompt3": "",
+    "prompt4": "",
+    "prompt5": "",
+    "prompt6": "",
+    "prompt7": "",
+    "prompt8": "",
+    "prompt9": "",
+    "prompt25": "Buy baby a bib",
     "startRecording": "Press the audio icon to start recording",
     "recordingStarted": "Recording started...",
     "uploading": "Audio is uploading...",
@@ -86,6 +94,7 @@
     "addressPlaceholder": "Enter your Address",
     "contactNumberPlaceholder": "Contact number",
     "takePhotoButton": "Take/Choose Photo (Optional)",
+    "editRecordingsButton": "Edit Recordings",
     "updateButton": "Update"
   }
 }

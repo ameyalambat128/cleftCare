@@ -33,14 +33,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="record"
-        options={{
-          tabBarIcon: ({ focused, color }) => (
-            <TabBarIcon name={focused ? "mic" : "mic-outline"} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="tutorials"
         options={{
           tabBarIcon: ({ focused, color }) => (
